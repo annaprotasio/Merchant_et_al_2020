@@ -1,0 +1,12 @@
+name: "Anna V. Protasio"
+output_dir: "."
+navbar:
+  title: "Anna V. Protasio"
+  left:
+    - text: "00_Data_acquisition"
+      href: 00_Data_acquisition.html
+    - text: "01_Mapping_and_Counting"
+      href: 01_Mapping_and_Counting.html
+    - text: "02_DiffExp_DataVis"
+      href: 02_DiffExp_DataVis.html
+

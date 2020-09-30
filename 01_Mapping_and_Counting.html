@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Anna Protasio" />
+
+
+<title>01_Mapping_and_Counting</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Anna V. Protasio</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="00_Data_acquisition.html">00_Data_acquisition</a>
+</li>
+<li>
+  <a href="01_Mapping_and_Counting.html">01_Mapping_and_Counting</a>
+</li>
+<li>
+  <a href="02_DiffExp_DataVis.html">02_DiffExp_DataVis</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">01_Mapping_and_Counting</h1>
+<h4 class="author">Anna Protasio</h4>
+<h4 class="date">30/09/2020</h4>
+
+</div>
+
+
+<div id="mapping-of-rnaseq-reads." class="section level2">
+<h2>Mapping of RNAseq reads.</h2>
+<p>Reads were mapped to the <em>Ancylostoma ceylanicum</em> genome described by in <a href="http://europepmc.org/abstract/MED/25730766">Schwartz <em>et al</em> 2015</a> and downloaded from <a href="https://parasite.wormbase.org/Ancylostoma_ceylanicum_prjna231479/Info/Index/">WormBase ParaSite</a> version WBPS14. Mapping of reads was performed with <a href="https://academic.oup.com/bioinformatics/article/29/1/15/272537">STAR</a> version=2.7.5a</p>
+<p>First, the genome was indexed:</p>
+<pre><code>STAR --runMode genomeGenerate --genomeDir star_index_wbps14/ --genomeFastaFiles ancylostoma_ceylanicum.PRJNA231479.WBPS14.genomic.fa</code></pre>
+<p>Note that the directory used for destination of index files needs to be made beforehand.</p>
+<p>For reads mapping, the general command is as shown below using sample SRR6359160 asn example.</p>
+<pre><code>STAR --runMode alignReads --outFileNamePrefix SRR6359160 --outSAMtype BAM SortedByCoordinate --runMode alignReads --outFilterMultimapNmax 1000 --outSAMmultNmax 1 --outFilterMismatchNmax 3 --outMultimapperOrder Random --winAnchorMultimapNmax 1000 --alignEndsType EndToEnd --alignIntronMax 1 --alignMatesGapMax 350 --genomeDir --readFilesIn SRR6359160_1.fastq.gz SRR6359160_2.fastq.gz</code></pre>
+<p>The output files will be written to a directory called “SRR6359160” and the file with name “Aligned.sortedByCoord.out.bam” has the mapped reads.</p>
+<p>We than changed all the file names so they contain the sample accession. For instance:</p>
+<pre><code>mv SRR6359160/Aligned.sortedByCoord.out.bam SRR6359160/SRR6359160_star.bam </code></pre>
+<p>These files were used as input for <a href="https://doi.org/10.1093/bioinformatics/btt656">featurCounts</a> v2.0.1.</p>
+<pre><code>featureCounts -M -F GFF -s 0 -p -t exon -g gene_id -o acey_avp25_annot_star_pe_fc.o -a acey_avp25_annot.gff SRR6359160/SRR6359160_star.bam SRR6359161/SRR6359161_star.bam SRR6359162/SRR6359162_star.bam ...</code></pre>
+<p>The three dots at the end of the command above represent additional BAM files that can be added. Featurecounts takes all BAM files in one single command and returns a counts table with gene_ids as rows and samples as columns.</p>
+</div>
+<div id="annotation-file" class="section level2">
+<h2>Annotation file</h2>
+<p>The GFF file containing the annotation has been modified from the original annotation file available from Wormbase ParaSite. In brief, we added a <code>gene_id</code> field to the 9th column of the GFF so the read summary could be done by gene_id, as this level feature did not appear in the original annotation.</p>
+<p>Im detail, the annotation file was obtained from Wormbase Parasite:</p>
+<pre><code>wget ftp://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS14/species/ancylostoma_ceylanicum/PRJNA231479/ancylostoma_ceylanicum.PRJNA231479.WBPS14.annotations.gff3.gz</code></pre>
+<p>unzipped:</p>
+<pre><code>gunzip ancylostoma_ceylanicum.PRJNA231479.WBPS14.annotations.gff3.gz</code></pre>
+<p>and the following script was used to modifiy the 9th column and write to a new file:</p>
+<pre><code>perl -lne &#39;my @line=split /\s+/; if ($line[8]=~m/Parent=transcript:(Acey_s\d+\.\w+)\.t\d/) {print $_.&quot;;gene_id=&quot;.$1};&#39; &lt; ancylostoma_ceylanicum.PRJNA231479.WBPS14.annotations.gff3 &gt; acey_avp25_annot.gff</code></pre>
+<p>The modified annotation file has been submitted as supplementary materials with this manuscript.</p>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

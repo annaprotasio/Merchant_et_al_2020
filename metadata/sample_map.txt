@@ -1,0 +1,10 @@
+BioSample Run Host Tissue DevStage Sex LifeCycleStage 
+SAMN08145872 SRR6359160 Hamster WholeWorm L3(rep3,rep5,rep6) NA pooledL3LarvaeCombinedReplicates48hrsPostInfectionFromSmallIntestine
+SAMN08145871 SRR6359161 Hamster WholeWorm L4(rep1,rep2) NA pooledL4LarvaeCombinedReplicates72hrsPostInfectionFromSmallIntestine
+SAMN08145870 SRR6359162 Hamster WholeWorm Adult(combinedRep) male pooledAdultMaleWorms
+SAMN08145869 SRR6359163 Hamster WholeWorm L4(combinedRep) NA pooledL4LarvaeCombinedReplicates72hrsPostInfectionFromSmallIntestine
+SAMN08145875 SRR6359164 Hamster WholeWorm Adult(pooled2) NA pooledAdultWorms
+SAMN08145874 SRR6359165 Hamster WholeWorm Adult(pooled1) NA pooledAdultWorms
+SAMN08145873 SRR6359166 Hamster WholeWorm Adult(rep1,rep2) make pooledAdultMaleWorms
+
+

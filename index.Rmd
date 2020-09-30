@@ -1,0 +1,5 @@
+---
+title: "Merchant et al 2020"
+---
+
+This webpage lists detailed methods and additional materials used in the analysis of RNAseq data from the paper Merchant et al. 2020. <insert link to bioRxive or permanent doi>. For any queries about this additional data, [get in touch](mailto:avp25@cam.ac.uk).

@@ -1,0 +1,68 @@
+---
+title: "01_Mapping_and_Counting"
+author: "Anna Protasio"
+date: "30/09/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Mapping of RNAseq reads.
+
+Reads were mapped to the *Ancylostoma ceylanicum* genome described by in [Schwartz *et al* 2015](http://europepmc.org/abstract/MED/25730766) and downloaded from [WormBase ParaSite](https://parasite.wormbase.org/Ancylostoma_ceylanicum_prjna231479/Info/Index/) version WBPS14. Mapping of reads was performed with [STAR](https://academic.oup.com/bioinformatics/article/29/1/15/272537)  version=2.7.5a
+
+First, the genome was indexed: 
+
+```
+STAR --runMode genomeGenerate --genomeDir star_index_wbps14/ --genomeFastaFiles ancylostoma_ceylanicum.PRJNA231479.WBPS14.genomic.fa
+```
+Note that the directory used for destination of index files needs to be made beforehand.
+
+For reads mapping, the general command is as shown below using sample SRR6359160 asn example.
+
+```
+STAR --runMode alignReads --outFileNamePrefix SRR6359160 --outSAMtype BAM SortedByCoordinate --runMode alignReads --outFilterMultimapNmax 1000 --outSAMmultNmax 1 --outFilterMismatchNmax 3 --outMultimapperOrder Random --winAnchorMultimapNmax 1000 --alignEndsType EndToEnd --alignIntronMax 1 --alignMatesGapMax 350 --genomeDir --readFilesIn SRR6359160_1.fastq.gz SRR6359160_2.fastq.gz
+```
+
+The output files will be written to a directory called "SRR6359160" and the file with name "Aligned.sortedByCoord.out.bam" has the mapped reads. 
+
+We than changed all the file names so they contain the sample accession. For instance:
+
+```
+mv SRR6359160/Aligned.sortedByCoord.out.bam SRR6359160/SRR6359160_star.bam 
+```
+
+These files were used as input for [featurCounts](https://doi.org/10.1093/bioinformatics/btt656) v2.0.1.
+
+```
+featureCounts -M -F GFF -s 0 -p -t exon -g gene_id -o acey_avp25_annot_star_pe_fc.o -a acey_avp25_annot.gff SRR6359160/SRR6359160_star.bam SRR6359161/SRR6359161_star.bam SRR6359162/SRR6359162_star.bam ...
+```
+
+The three dots at the end of the command above represent additional BAM files that can be added. Featurecounts takes all BAM files in one single command and returns a counts table with gene_ids as rows and samples as columns. 
+
+## Annotation file
+
+The GFF file containing the annotation has been modified from the original annotation file available from Wormbase ParaSite. In brief, we added a `gene_id` field to the 9th column of the GFF so the read summary could be done by gene_id, as this level feature did not appear in the original annotation. 
+
+Im detail, the annotation file was obtained from Wormbase Parasite:
+
+```
+wget ftp://ftp.ebi.ac.uk/pub/databases/wormbase/parasite/releases/WBPS14/species/ancylostoma_ceylanicum/PRJNA231479/ancylostoma_ceylanicum.PRJNA231479.WBPS14.annotations.gff3.gz
+```
+
+unzipped:
+
+```
+gunzip ancylostoma_ceylanicum.PRJNA231479.WBPS14.annotations.gff3.gz
+```
+
+and the following script was used to modifiy the 9th column and write to a new file:
+
+```
+perl -lne 'my @line=split /\s+/; if ($line[8]=~m/Parent=transcript:(Acey_s\d+\.\w+)\.t\d/) {print $_.";gene_id=".$1};' < ancylostoma_ceylanicum.PRJNA231479.WBPS14.annotations.gff3 > acey_avp25_annot.gff
+```
+
+The modified annotation file has been submitted as supplementary materials with this manuscript. 
+

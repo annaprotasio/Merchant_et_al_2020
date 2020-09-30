@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Anna Protasio" />
+
+
+<title>03_Differential_Expression</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Anna V. Protasio</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="00_Data_acquisition.html">00_Data_acquisition</a>
+</li>
+<li>
+  <a href="01_Mapping_and_Counting.html">01_Mapping_and_Counting</a>
+</li>
+<li>
+  <a href="02_DiffExp_DataVis.html">02_DiffExp_DataVis</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">03_Differential_Expression</h1>
+<h4 class="author">Anna Protasio</h4>
+<h4 class="date">30/09/2020</h4>
+
+</div>
+
+
+<div id="differential-expression-analysis-with-deseq2." class="section level2">
+<h2>Differential Expression analysis with DESeq2.</h2>
+<p>We used the very popular <a href="https://doi.org/10.1186/s13059-014-0550-8">DESeq2 package</a> implemented in <a href="https://www.r-project.org/">R</a> and available through <a href="https://www.bioconductor.org/">Bioconductor</a>.</p>
+<p>Below is the script used to process the counts table. <strong>All the code blocks are R code</strong></p>
+<p>Load libraries:</p>
+<pre><code>library(DESeq2)
+library(ggplot2)
+library(data.table)
+library(WriteXLS)
+library(edgeR)
+library(gridExtra)
+library(karyoploteR)
+library(GenomicFeatures)
+library(GenomicRanges)
+library(data.table)
+library(rtracklayer)
+library(viridis)</code></pre>
+<p>Read featreCount output count table into a variable. Note that the corresponding file in this repository is gzipped! Gunzip first before loading.</p>
+<pre><code>rawdata = read.table(&quot;input_data/acey_avp25_annot_star_pe_fc.o&quot;, skip = 1, header = T) #original name PRJNA72583.paired.rep.acey_avp25_annot_star_pe_fc.o</code></pre>
+<p>Modify row names and colnames.</p>
+<pre><code>counts = rawdata[,c(7:ncol(rawdata))]
+rownames(counts) = sub(&quot;gene:&quot;,&quot;&quot;,rawdata$Geneid)
+rownames(counts) = sub(&quot;Acey_&quot;,&quot;&quot;,rawdata$Geneid)
+colnames(counts) = sub(&quot;star.pe.SRR\\d+.&quot;,&quot;&quot;,colnames(counts)) # this might be different depending on assigned file names
+colnames(counts) = sub(&quot;_star.bam&quot;,&quot;&quot;,colnames(counts))
+
+gene_len = rawdata$Length # save gene lenght </code></pre>
+<p>Load the sample sheet that has the life cycle stage and run accession.</p>
+<pre><code>sample_map = read.table(&quot;metadata/sample_map.txt&quot;, header = T)
+sample_map$Stage = c(&quot;L3&quot;,&quot;L4&quot;,&quot;adultM&quot;,&quot;L4&quot;,rep(&quot;adultN&quot;,2),&quot;adultM&quot;)
+sample_map$Stage = as.factor(sample_map$Stage)</code></pre>
+<p>Define the coldata object that will later on be needed to run DESeq2</p>
+<pre><code>coldata = data.frame(
+  sample = sample_map$Stage
+  ,run = sample_map$Run
+)
+rownames(coldata) = sample_map$Run</code></pre>
+<p>Control that all the samples are in the count table, that they have the same name and that they are in the expected order.</p>
+<pre><code>all(rownames(coldata) %in% colnames(counts))
+all(rownames(coldata) == colnames(counts)) #check that the order of the samples are the same in coldata and the counts matrix
+cts &lt;- counts[, rownames(coldata)] # fix order
+all(rownames(coldata) == colnames(cts))</code></pre>
+<p>Create the DESeq data set.</p>
+<pre><code>dds &lt;- DESeqDataSetFromMatrix(countData = cts,
+                              colData = coldata,
+                              design = ~ sample)</code></pre>
+<p>In order to run a PCA, it is best to transform the data first. We use the <code>vsd</code> transformation.</p>
+<pre><code>vsd &lt;- vst(dds, blind=FALSE)
+plotPCA(vsd, intgroup=c(&quot;sample&quot;))</code></pre>
+<p>Reassign <code>L3</code> as the reference sample. This wil make that any comparison, unless specified, will be done agains this sample.</p>
+<pre><code>dds$sample &lt;- relevel(dds$sample, ref = &quot;L3&quot;)</code></pre>
+<p>Run DESeq2</p>
+<pre><code>dds = DESeq(dds)</code></pre>
+<p>Create a variable with the names of the ERVs. goi stands for Gene(s) Of Interest</p>
+<pre><code>goi = as.vector(c(&quot;s0009.g673&quot;,&quot;s0020.g108&quot;,&quot;s0023.g802&quot;,&quot;s0023.g869&quot;,&quot;s0025.g1106&quot;,&quot;s0070.g451&quot;,&quot;s0203.g1846&quot;, &quot;s0206.g1994&quot;,&quot;s0398.g719&quot;))</code></pre>
+<p>Collect results for the gois.</p>
+<pre><code>res.l3.l4 = results(dds, contrast = c(&quot;sample&quot;,&quot;L4&quot;,&quot;L3&quot;))
+res.l3.l4[goi,]
+
+res.l3.adN = results(dds, contrast = c(&quot;sample&quot;,&quot;adultN&quot;,&quot;L3&quot;))
+res.l3.adN[goi,]
+
+res.l4.adN = results(dds, contrast = c(&quot;sample&quot;,&quot;adultN&quot;,&quot;L4&quot;))
+res.l4.adN[goi,]
+
+res.l4.adM = results(dds, contrast = c(&quot;sample&quot;,&quot;adultM&quot;,&quot;L4&quot;))
+res.l4.adM[goi,]
+
+res.adN.adM = results(dds, contrast = c(&quot;sample&quot;,&quot;adultM&quot;,&quot;adultN&quot;))
+res.adN.adM[goi,]</code></pre>
+</div>
+<div id="data-visualisation" class="section level2">
+<h2>Data visualisation</h2>
+<p>After running the blocks above, we can do some data manipulation to prepare the data for plotting.</p>
+<p>The first step is to calculate the RPKM values for the count table and calculate the mean RPKM for each sample.</p>
+<pre><code>Ac_RPKM = rpkm(cts, gene_len, normalized.lib.sizes=TRUE, log=T, prior.count=0.25)
+colnames(Ac_RPKM) = coldata$sample
+Ac_RPKM = Ac_RPKM[,c(1,2,4,3,7,5,6)]
+Ac_RPKM.m2 = cbind(Ac_RPKM[,1]
+                   , apply(Ac_RPKM[,2:3], 1, mean) # mean of L4 sample
+                   , apply(Ac_RPKM[,4:5], 1, mean) # mean of AdultM sample
+                   , apply(Ac_RPKM[,6:1], 1, mean) # mean of AdultN sample
+                   )
+colnames(Ac_RPKM.m2) = c(&quot;L3&quot;, &quot;L4&quot;, &quot;AdultM&quot;, &quot;AdultN&quot;)</code></pre>
+<div id="figure-7a" class="section level3">
+<h3>Figure 7a:</h3>
+<pre><code>
+goi.n = c(&quot;Atlas&quot;, &quot;s0203.g1846&quot;, &quot;s0025.g1106&quot;)
+
+Ac_RPKM.m2 = reshape2::melt(Ac_RPKM.m2)
+
+# rename levels of life cycle stages
+levels(Ac_RPKM.m2$Var2)[levels(Ac_RPKM.m2$Var2)==&quot;AdultM&quot;] &lt;- &quot;Adult male&quot;
+levels(Ac_RPKM.m2$Var2)[levels(Ac_RPKM.m2$Var2)==&quot;AdultN&quot;] &lt;- &quot;Adult mix&quot;
+
+# rename levels of Atlas
+levels(Ac_RPKM.m2$Var1)[levels(Ac_RPKM.m2$Var1)==&quot;s0020.g108&quot;] &lt;- &quot;Atlas&quot;
+
+t.goi.m2 = Ac_RPKM.m2[which(Ac_RPKM.m2$Var1 %in% goi.n),]
+
+ggplot() +
+  geom_boxplot(data = Ac_RPKM.m2, aes(x = factor(Var2), y= value), fill = &quot;lightgrey&quot;) + # removes outliers, use with scale_y_continuous(limits = c(lower, upper))
+  # points of data.frame literal
+  geom_point(data = t.goi.m2, size = 4, aes(x=factor(Var2), y=value, color = Var1, shape = Var1)) +
+  geom_line(data = t.goi.m2, aes(x=factor(Var2), y=value, group = Var1, linetype = Var1)) +
+  #geom_line(data = t.goi.m2, aes(group = Var1), alpha = 0.6, colour = &quot;black&quot;) + 
+  ylab(expression(Log[2]~(RPKM))) +
+  xlab(&quot;Life cycle stage&quot;) +
+  labs(title = &quot;Figure 7a&quot;) +
+  # coord_cartesian(ylim = c(-8, 18)) +
+  scale_y_continuous(limits = c(-7.5, 12)) +
+  theme_bw(base_size = 14) +
+  theme(axis.title = element_text(size = 12)
+        , axis.text = element_text(size = 14)
+        , legend.text = element_text(size = 10)
+        , legend.title = element_blank()
+  ) 
+</code></pre>
+</div>
+<div id="supplementary-figure-8." class="section level3">
+<h3>Supplementary figure 8.</h3>
+<pre><code>goi.1=as.factor(goi)
+
+levels(goi.1)[levels(goi.1)==&quot;s0020.g108&quot;] &lt;- &quot;Atlas&quot;
+t.goi.1 = Ac_RPKM.m2[which(Ac_RPKM.m2$Var1 %in% goi.1),]
+t.goi.1 = droplevels(t.goi.1)
+t.goi.1$Var1 = factor(t.goi.1$Var1, levels = sort(levels(t.goi.1$Var1)))
+
+line.atlas = t.goi.1[which(t.goi.1$Var1==&quot;Atlas&quot;),]
+
+  ggplot() +
+  geom_boxplot(data = Ac_RPKM.m2, aes(x = factor(Var2), y= value), fill = &quot;lightgrey&quot;, 
+               outlier.shape = NA) + # removes outliers, use with scale_y_continuous(limits = c(lower, upper))
+  geom_point(data = t.goi.1, size = 4, aes(x=factor(Var2), y=value, color=Var1, shape = Var1), position = position_jitterdodge(jitter.width = 0)) + 
+  scale_shape_manual(values=c(16:24)) +
+  ylab(expression(Log[2]~(RPKM))) +
+  xlab(&quot;Life cycle stage&quot;) +
+  labs(title = &quot;Supplementary Figure 8&quot;) +
+  scale_y_continuous(limits = c(-7.5, 8)) +
+  theme_bw(base_size = 14) +
+  theme(axis.title = element_text(size = 12)
+        , axis.text = element_text(size = 14)
+        , legend.text = element_text(size = 10)
+        , legend.title = element_blank()
+  ) 
+</code></pre>
+</div>
+<div id="figure-7b" class="section level3">
+<h3>Figure 7b:</h3>
+<p>This part uses the <a href="http://www.bioconductor.org/packages/release/bioc/html/karyoploteR.html">karyoploteR package</a>.</p>
+<p>Note that the full annotation file, which is required for this chunk, is gzipped in the repository. This mush be unzipped before loading.</p>
+<pre><code>genome.length = read.table(file = &quot;input_data/ancylostoma_ceylanicum.PRJNA231479.WBPS14.genomic.fa.length&quot;, header = F)
+
+custom.genome &lt;- GRanges(seqnames = Rle(genome.length$V1)
+                         , ranges = IRanges(start = rep(1, length(genome.length$V1)), end=genome.length$V2)
+                         , strand = &quot;*&quot;)
+
+# full annotation
+annot.gr = import.gff(&quot;input_data/ancylostoma_ceylanicum.PRJNA231479.WBPS14.annotations.karyoploteR.gff&quot;)
+annot.txd = makeTxDbFromGRanges(annot.gr)
+
+
+# define a region of interest
+my.region &lt;- toGRanges(&quot;Acey_s0020_scaf:885000-894000&quot;)
+kp &lt;- plotKaryotype(genome = custom.genome, zoom = my.region)
+
+genes.data.worm &lt;- makeGenesDataFromTxDb(annot.txd, 
+                                         karyoplot=kp, plot.transcripts=TRUE, 
+                                         #plot.transcripts.structure=TRUE
+)
+
+genes.data.worm &lt;- mergeTranscripts(genes.data.worm)
+
+
+# make protein domains GRanges -----------------------------------------------------
+
+domain.gr = GRanges(seqnames = Rle(rep(&quot;Acey_s0020_scaf&quot;,7))
+                   , ranges = IRanges(start = c(885347 + 618 #start of GAG
+                                                , 885347 + 1680 #start of PRO
+                                                , 885347 + 3243 # start of RT/PAO
+                                                , 885347 + 4605 # start of RNAseH 
+                                                , 885347 + 5262 # start of DUF5641 
+                                                , 885347 + 5725 # start of Gn
+                                                , 885347 + 6990 # start of Gc
+                                                )
+                                      , end= c(885347 + 1050 # end of GAG
+                                                 , 885347 + 2157 # end of PRO
+                                                 , 885347 + 3732 # end of RT/PAO
+                                                 , 885347 + 5136 # end of RNAseH 
+                                                 , 885347 + 5553 # end of DUF5641 
+                                                 , 885347 + 6729 # end of Gn
+                                                 , 885347 + 8385 # end of Gc
+                                                 )
+                   )
+                   , strand = Rle(&quot;+&quot;)
+                   , domain = factor(c(&quot;GAG&quot;,&quot;PRO&quot;,&quot;RT/PAO&quot;,&quot;RNAseH&quot;,&quot;DUF5641&quot;,&quot;Gn&quot;,&quot;Gc&quot;))
+                   , gene_id = c(rep(&quot;Acey_s0020.g108&quot;,7))
+                   , transcript_id = paste(rep(&quot;Acey_s0020.g108&quot;,7), &quot;.t1&quot;, sep=&quot;&quot;)
+)
+</code></pre>
+<p>From here on, the original BAM files are needed. Due to size, they are not included with the repostory, only the section Acey_s0020_scaf:885000-894000 has been included. If required, please send an email to the corresponding author requestion access to the BAM files. For more information about how to build this figure please consult the Tutorial within the KaryoplotR package.</p>
+<p>Note that this script cannot be run from the R Markdown block, please run directly in your terminal or console.</p>
+<pre><code>kp &lt;- plotKaryotype(genome = custom.genome, zoom = my.region, cex=1)
+kpPlotGenes(kp, data=genes.data.worm, r0=0, r1=0.15, gene.name.cex = 0.7, col = &quot;darkgrey&quot;, border = &quot;black&quot;, add.gene.names=TRUE, gene.name.position=&quot;center&quot;, gene.name.col=&quot;black&quot;)
+#kpPlotRegions(kp, domain.gr, col=domain.gr$domain, r0=0.16, r1=0.21, border = T)
+kpPlotRegions(kp, domain.gr, col= viridis_pal()(length(domain.gr$domain)), r0=0.16, r1=0.21, border = T)
+#kpAddLabels(kp, labels = &quot;Domains&quot;, r0=0.15, r1=0.20, cex=0.9)
+kpAddMainTitle(kp, main=&quot;RNAseq coverage plot for Atlas virus&quot;)
+
+bam1 = &quot;input_data/L4_section.bam&quot;
+kp &lt;- kpPlotBAMCoverage(kp, data=bam1, r0=0.30, r1=0.60, col =&quot;#F8766D&quot;, border=&quot;black&quot;) # &quot;#F8766D&quot;
+kpAxis(kp, ymin=0, ymax=4, numticks = 2, r0=0.30, r1=0.60)
+kpAbline(kp, h=0.30, col=&quot;black&quot;)
+kpAddLabels(kp, labels = &quot;L4     &quot;, r0=0.30, r1=0.60)
+
+bam2 = &quot;input_data/AdN.merged.bam&quot;
+kp &lt;- kpPlotBAMCoverage(kp, data=bam2, r0=0.70, r1=1, col=&quot;#00BFC4&quot;, border=&quot;black&quot;) # &quot;#00BFC4&quot;
+kpAxis(kp, ymin=0, ymax=13, numticks = 2,  r0=0.70, r1=1)
+kpAbline(kp, h=0.70, col=&quot;black&quot;)
+kpAddLabels(kp, labels = &quot;Adult   &quot;, r0=0.70, r1=1)</code></pre>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

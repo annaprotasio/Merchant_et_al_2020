@@ -1,0 +1,50 @@
+---
+title: "00 - Location and description of RNAseq files"
+author: "Anna Protasio"
+date: "30/09/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## RNAseq datasets
+
+RNAseq data has previously been submitted in [Bernot *et al* 2020](http://www.sciencedirect.com/science/article/pii/S002075192030151X). The sample descritpion ans accession numbers can be found in their Supplementary Table 1. Note that there accession numbers correspond to secondary sample accession while the ones used by us correspon to the run accession, which matched the fastq file path (see below). To aid samples matching, we used the filereport from ENA for this project to match all accession numbers and a summary of them is presented in the table below. Detailed sample descriptions including life cycle statge are missing from the ENA project filereport but was found by searching for  individual sample accession pages (see example for Sample Accession [SAMN08145872](https://www.ebi.ac.uk/ena/browser/view/SAMN08145872)) and refering to the "Additional Attributes"
+
+Run Accession numbers and corresponding sample description:
+
+|Life cycle stage|Run |Sample|Secondary Sample|Experiment|
+|---------------|:-------------:| :-------------:|:-------------:|:-------------:|
+|Pooled L3 larvae | SRR6359160 |SAMN08145872|SRS2744260|SRX3455561|
+|Pooled L4 larvae (rep1)| SRR6359161|SAMN08145871|SRS2744259|SRX3455560|
+|Pooled L4 larvae L4 (rep2) |SRR6359163|SAMN08145869|SRS2744256|SRX3455558|
+|Pooled adult male worms (rep1) | SRR6359162|SAMN08145870|SRS2744257|SRX3455559|
+|Pooled adult male worms (rep2) | SRR6359166|SAMN08145873|SRS2744255|SRX3455555|
+|Pooled adult worms (rep1)| SRR6359164|SAMN08145875|SRS2744254|SRX3455557|
+|Pooled adult worms (rep2) | SRR6359165|SAMN08145874|SRS2744253|SRX3455556|
+
+All samples belong to project accession [PRJNA72583](https://www.ebi.ac.uk/ena/browser/view/PRJNA72583).
+
+RNAseq datasets were obtained from the European Nucleotide Archive (ENA) database hosted by the European Bioinformatics Insitute (EBI) [www.ebi.ac.uk/ena](https://www.ebi.ac.uk/ena/browser/home)
+
+
+```
+wget ftp.sra.ebi.ac.uk/vol1/fastq/SRR635/000/SRR6359160/SRR6359160_1.fastq.gz
+wget ftp.sra.ebi.ac.uk/vol1/fastq/SRR635/000/SRR6359160/SRR6359160_2.fastq.gz
+wget ftp.sra.ebi.ac.uk/vol1/fastq/SRR635/001/SRR6359161/SRR6359161_1.fastq.gz
+wget ftp.sra.ebi.ac.uk/vol1/fastq/SRR635/001/SRR6359161/SRR6359161_2.fastq.gz
+wget ftp.sra.ebi.ac.uk/vol1/fastq/SRR635/002/SRR6359162/SRR6359162_1.fastq.gz
+wget ftp.sra.ebi.ac.uk/vol1/fastq/SRR635/002/SRR6359162/SRR6359162_2.fastq.gz
+wget ftp.sra.ebi.ac.uk/vol1/fastq/SRR635/003/SRR6359163/SRR6359163_1.fastq.gz
+wget ftp.sra.ebi.ac.uk/vol1/fastq/SRR635/003/SRR6359163/SRR6359163_2.fastq.gz
+wget ftp.sra.ebi.ac.uk/vol1/fastq/SRR635/004/SRR6359164/SRR6359164_1.fastq.gz
+wget ftp.sra.ebi.ac.uk/vol1/fastq/SRR635/004/SRR6359164/SRR6359164_2.fastq.gz
+wget ftp.sra.ebi.ac.uk/vol1/fastq/SRR635/005/SRR6359165/SRR6359165_1.fastq.gz
+wget ftp.sra.ebi.ac.uk/vol1/fastq/SRR635/005/SRR6359165/SRR6359165_2.fastq.gz
+wget ftp.sra.ebi.ac.uk/vol1/fastq/SRR635/006/SRR6359166/SRR6359166_1.fastq.gz
+wget ftp.sra.ebi.ac.uk/vol1/fastq/SRR635/006/SRR6359166/SRR6359166_2.fastq.gz
+```
+
+

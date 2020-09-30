@@ -1,0 +1,299 @@
+---
+title: "03_Differential_Expression"
+author: "Anna Protasio"
+date: "30/09/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Differential Expression analysis with DESeq2.
+
+We used the very popular [DESeq2 package](https://doi.org/10.1186/s13059-014-0550-8) implemented in [R](https://www.r-project.org/) and available through [Bioconductor](https://www.bioconductor.org/).
+
+Below is the script used to process the counts table. **All the code blocks are R code**
+
+Load libraries:
+
+```
+library(DESeq2)
+library(ggplot2)
+library(data.table)
+library(WriteXLS)
+library(edgeR)
+library(gridExtra)
+library(karyoploteR)
+library(GenomicFeatures)
+library(GenomicRanges)
+library(data.table)
+library(rtracklayer)
+library(viridis)
+```
+
+Read featreCount output count table into a variable. Note that the corresponding file in this repository is gzipped! Gunzip first before loading. 
+
+```
+rawdata = read.table("input_data/acey_avp25_annot_star_pe_fc.o", skip = 1, header = T) #original name PRJNA72583.paired.rep.acey_avp25_annot_star_pe_fc.o
+```
+
+
+Modify row names and colnames.
+```
+counts = rawdata[,c(7:ncol(rawdata))]
+rownames(counts) = sub("gene:","",rawdata$Geneid)
+rownames(counts) = sub("Acey_","",rawdata$Geneid)
+colnames(counts) = sub("star.pe.SRR\\d+.","",colnames(counts)) # this might be different depending on assigned file names
+colnames(counts) = sub("_star.bam","",colnames(counts))
+
+gene_len = rawdata$Length # save gene lenght 
+```
+
+Load the sample sheet that has the life cycle stage and run accession. 
+```
+sample_map = read.table("metadata/sample_map.txt", header = T)
+sample_map$Stage = c("L3","L4","adultM","L4",rep("adultN",2),"adultM")
+sample_map$Stage = as.factor(sample_map$Stage)
+```
+
+Define the coldata object that will later on be needed to run DESeq2
+
+```
+coldata = data.frame(
+  sample = sample_map$Stage
+  ,run = sample_map$Run
+)
+rownames(coldata) = sample_map$Run
+```
+
+Control that all the samples are in the count table, that they have the same name and that they are in the expected order. 
+
+```
+all(rownames(coldata) %in% colnames(counts))
+all(rownames(coldata) == colnames(counts)) #check that the order of the samples are the same in coldata and the counts matrix
+cts <- counts[, rownames(coldata)] # fix order
+all(rownames(coldata) == colnames(cts))
+```
+
+
+Create the DESeq data set. 
+```
+dds <- DESeqDataSetFromMatrix(countData = cts,
+                              colData = coldata,
+                              design = ~ sample)
+```
+
+In order to run a PCA, it is best to transform the data first. We use the `vsd` transformation. 
+
+```
+vsd <- vst(dds, blind=FALSE)
+plotPCA(vsd, intgroup=c("sample"))
+```
+
+Reassign `L3` as the reference sample. This wil make that any comparison, unless specified, will be done agains this sample. 
+
+```
+dds$sample <- relevel(dds$sample, ref = "L3")
+```
+
+Run DESeq2
+
+```
+dds = DESeq(dds)
+```
+
+Create a variable with the names of the ERVs. goi stands for Gene(s) Of Interest
+
+```
+goi = as.vector(c("s0009.g673","s0020.g108","s0023.g802","s0023.g869","s0025.g1106","s0070.g451","s0203.g1846", "s0206.g1994","s0398.g719"))
+```
+
+Collect results for the gois.
+
+```
+res.l3.l4 = results(dds, contrast = c("sample","L4","L3"))
+res.l3.l4[goi,]
+
+res.l3.adN = results(dds, contrast = c("sample","adultN","L3"))
+res.l3.adN[goi,]
+
+res.l4.adN = results(dds, contrast = c("sample","adultN","L4"))
+res.l4.adN[goi,]
+
+res.l4.adM = results(dds, contrast = c("sample","adultM","L4"))
+res.l4.adM[goi,]
+
+res.adN.adM = results(dds, contrast = c("sample","adultM","adultN"))
+res.adN.adM[goi,]
+```
+
+
+## Data visualisation
+
+After running the blocks above, we can do some data manipulation to prepare the data for plotting.
+
+The first step is to calculate the RPKM values for the count table and calculate the mean RPKM for each sample.
+
+```
+Ac_RPKM = rpkm(cts, gene_len, normalized.lib.sizes=TRUE, log=T, prior.count=0.25)
+colnames(Ac_RPKM) = coldata$sample
+Ac_RPKM = Ac_RPKM[,c(1,2,4,3,7,5,6)]
+Ac_RPKM.m2 = cbind(Ac_RPKM[,1]
+                   , apply(Ac_RPKM[,2:3], 1, mean) # mean of L4 sample
+                   , apply(Ac_RPKM[,4:5], 1, mean) # mean of AdultM sample
+                   , apply(Ac_RPKM[,6:1], 1, mean) # mean of AdultN sample
+                   )
+colnames(Ac_RPKM.m2) = c("L3", "L4", "AdultM", "AdultN")
+```
+
+### Figure 7a:
+
+```
+
+goi.n = c("Atlas", "s0203.g1846", "s0025.g1106")
+
+Ac_RPKM.m2 = reshape2::melt(Ac_RPKM.m2)
+
+# rename levels of life cycle stages
+levels(Ac_RPKM.m2$Var2)[levels(Ac_RPKM.m2$Var2)=="AdultM"] <- "Adult male"
+levels(Ac_RPKM.m2$Var2)[levels(Ac_RPKM.m2$Var2)=="AdultN"] <- "Adult mix"
+
+# rename levels of Atlas
+levels(Ac_RPKM.m2$Var1)[levels(Ac_RPKM.m2$Var1)=="s0020.g108"] <- "Atlas"
+
+t.goi.m2 = Ac_RPKM.m2[which(Ac_RPKM.m2$Var1 %in% goi.n),]
+
+ggplot() +
+  geom_boxplot(data = Ac_RPKM.m2, aes(x = factor(Var2), y= value), fill = "lightgrey") + # removes outliers, use with scale_y_continuous(limits = c(lower, upper))
+  # points of data.frame literal
+  geom_point(data = t.goi.m2, size = 4, aes(x=factor(Var2), y=value, color = Var1, shape = Var1)) +
+  geom_line(data = t.goi.m2, aes(x=factor(Var2), y=value, group = Var1, linetype = Var1)) +
+  #geom_line(data = t.goi.m2, aes(group = Var1), alpha = 0.6, colour = "black") + 
+  ylab(expression(Log[2]~(RPKM))) +
+  xlab("Life cycle stage") +
+  labs(title = "Figure 7a") +
+  # coord_cartesian(ylim = c(-8, 18)) +
+  scale_y_continuous(limits = c(-7.5, 12)) +
+  theme_bw(base_size = 14) +
+  theme(axis.title = element_text(size = 12)
+        , axis.text = element_text(size = 14)
+        , legend.text = element_text(size = 10)
+        , legend.title = element_blank()
+  ) 
+
+```
+
+### Supplementary figure 8.
+
+```
+goi.1=as.factor(goi)
+
+levels(goi.1)[levels(goi.1)=="s0020.g108"] <- "Atlas"
+t.goi.1 = Ac_RPKM.m2[which(Ac_RPKM.m2$Var1 %in% goi.1),]
+t.goi.1 = droplevels(t.goi.1)
+t.goi.1$Var1 = factor(t.goi.1$Var1, levels = sort(levels(t.goi.1$Var1)))
+
+line.atlas = t.goi.1[which(t.goi.1$Var1=="Atlas"),]
+
+  ggplot() +
+  geom_boxplot(data = Ac_RPKM.m2, aes(x = factor(Var2), y= value), fill = "lightgrey", 
+               outlier.shape = NA) + # removes outliers, use with scale_y_continuous(limits = c(lower, upper))
+  geom_point(data = t.goi.1, size = 4, aes(x=factor(Var2), y=value, color=Var1, shape = Var1), position = position_jitterdodge(jitter.width = 0)) + 
+  scale_shape_manual(values=c(16:24)) +
+  ylab(expression(Log[2]~(RPKM))) +
+  xlab("Life cycle stage") +
+  labs(title = "Supplementary Figure 8") +
+  scale_y_continuous(limits = c(-7.5, 8)) +
+  theme_bw(base_size = 14) +
+  theme(axis.title = element_text(size = 12)
+        , axis.text = element_text(size = 14)
+        , legend.text = element_text(size = 10)
+        , legend.title = element_blank()
+  ) 
+
+```
+
+
+###  Figure 7b:
+
+This part uses the [karyoploteR package](http://www.bioconductor.org/packages/release/bioc/html/karyoploteR.html). 
+
+Note that the full annotation file, which is required for this chunk, is gzipped in the repository. This mush be unzipped before loading. 
+
+```
+genome.length = read.table(file = "input_data/ancylostoma_ceylanicum.PRJNA231479.WBPS14.genomic.fa.length", header = F)
+
+custom.genome <- GRanges(seqnames = Rle(genome.length$V1)
+                         , ranges = IRanges(start = rep(1, length(genome.length$V1)), end=genome.length$V2)
+                         , strand = "*")
+
+# full annotation
+annot.gr = import.gff("input_data/ancylostoma_ceylanicum.PRJNA231479.WBPS14.annotations.karyoploteR.gff")
+annot.txd = makeTxDbFromGRanges(annot.gr)
+
+
+# define a region of interest
+my.region <- toGRanges("Acey_s0020_scaf:885000-894000")
+kp <- plotKaryotype(genome = custom.genome, zoom = my.region)
+
+genes.data.worm <- makeGenesDataFromTxDb(annot.txd, 
+                                         karyoplot=kp, plot.transcripts=TRUE, 
+                                         #plot.transcripts.structure=TRUE
+)
+
+genes.data.worm <- mergeTranscripts(genes.data.worm)
+
+
+# make protein domains GRanges -----------------------------------------------------
+
+domain.gr = GRanges(seqnames = Rle(rep("Acey_s0020_scaf",7))
+                   , ranges = IRanges(start = c(885347 + 618 #start of GAG
+                                                , 885347 + 1680 #start of PRO
+                                                , 885347 + 3243 # start of RT/PAO
+                                                , 885347 + 4605 # start of RNAseH 
+                                                , 885347 + 5262 # start of DUF5641 
+                                                , 885347 + 5725 # start of Gn
+                                                , 885347 + 6990 # start of Gc
+                                                )
+                                      , end= c(885347 + 1050 # end of GAG
+                                                 , 885347 + 2157 # end of PRO
+                                                 , 885347 + 3732 # end of RT/PAO
+                                                 , 885347 + 5136 # end of RNAseH 
+                                                 , 885347 + 5553 # end of DUF5641 
+                                                 , 885347 + 6729 # end of Gn
+                                                 , 885347 + 8385 # end of Gc
+                                                 )
+                   )
+                   , strand = Rle("+")
+                   , domain = factor(c("GAG","PRO","RT/PAO","RNAseH","DUF5641","Gn","Gc"))
+                   , gene_id = c(rep("Acey_s0020.g108",7))
+                   , transcript_id = paste(rep("Acey_s0020.g108",7), ".t1", sep="")
+)
+
+```
+
+From here on, the original BAM files are needed. Due to size, they are not included with the repostory, only the section Acey_s0020_scaf:885000-894000 has been included.  If required, please send an email to the corresponding author requestion access to the BAM files. For more information about how to build this figure please consult the Tutorial within the KaryoplotR package.
+
+Note that this script cannot be run from the R Markdown block, please run directly in your terminal or console.
+
+```
+kp <- plotKaryotype(genome = custom.genome, zoom = my.region, cex=1)
+kpPlotGenes(kp, data=genes.data.worm, r0=0, r1=0.15, gene.name.cex = 0.7, col = "darkgrey", border = "black", add.gene.names=TRUE, gene.name.position="center", gene.name.col="black")
+#kpPlotRegions(kp, domain.gr, col=domain.gr$domain, r0=0.16, r1=0.21, border = T)
+kpPlotRegions(kp, domain.gr, col= viridis_pal()(length(domain.gr$domain)), r0=0.16, r1=0.21, border = T)
+#kpAddLabels(kp, labels = "Domains", r0=0.15, r1=0.20, cex=0.9)
+kpAddMainTitle(kp, main="RNAseq coverage plot for Atlas virus")
+
+bam1 = "input_data/L4_section.bam"
+kp <- kpPlotBAMCoverage(kp, data=bam1, r0=0.30, r1=0.60, col ="#F8766D", border="black") # "#F8766D"
+kpAxis(kp, ymin=0, ymax=4, numticks = 2, r0=0.30, r1=0.60)
+kpAbline(kp, h=0.30, col="black")
+kpAddLabels(kp, labels = "L4     ", r0=0.30, r1=0.60)
+
+bam2 = "input_data/AdN.merged.bam"
+kp <- kpPlotBAMCoverage(kp, data=bam2, r0=0.70, r1=1, col="#00BFC4", border="black") # "#00BFC4"
+kpAxis(kp, ymin=0, ymax=13, numticks = 2,  r0=0.70, r1=1)
+kpAbline(kp, h=0.70, col="black")
+kpAddLabels(kp, labels = "Adult   ", r0=0.70, r1=1)
+```
