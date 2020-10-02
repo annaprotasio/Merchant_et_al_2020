@@ -13,7 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 We used the very popular [DESeq2 package](https://doi.org/10.1186/s13059-014-0550-8) implemented in [R](https://www.r-project.org/) and available through [Bioconductor](https://www.bioconductor.org/).
 
-Below is the script used to process the counts table. **All the code blocks are R code**
+Below is the script used to process the counts table. **All the code blocks are R code**. 
+
+IMPORTANT: Compressed files in the `input_data` folder need to be decompressed (use `gunzip` command) before loading.
 
 Load libraries:
 
@@ -147,64 +149,75 @@ Ac_RPKM.m2 = cbind(Ac_RPKM[,1]
 colnames(Ac_RPKM.m2) = c("L3", "L4", "AdultM", "AdultN")
 ```
 
-### Figure 7a:
+### Supplementary Figure 8:
 
 ```
 
-goi.n = c("Atlas", "s0203.g1846", "s0025.g1106")
-
 Ac_RPKM.m2 = reshape2::melt(Ac_RPKM.m2)
 
-# rename levels of life cycle stages
 levels(Ac_RPKM.m2$Var2)[levels(Ac_RPKM.m2$Var2)=="AdultM"] <- "Adult male"
 levels(Ac_RPKM.m2$Var2)[levels(Ac_RPKM.m2$Var2)=="AdultN"] <- "Adult mix"
 
-# rename levels of Atlas
 levels(Ac_RPKM.m2$Var1)[levels(Ac_RPKM.m2$Var1)=="s0020.g108"] <- "Atlas"
+goi.m2 = factor(c("Atlas","s0025.g1106","s0203.g1846","s0009.g673","s0023.g802","s0023.g869", "s0070.g451","s0206.g1994","s0398.g719"))
 
-t.goi.m2 = Ac_RPKM.m2[which(Ac_RPKM.m2$Var1 %in% goi.n),]
+rpkm.goi.m2 = Ac_RPKM.m2[which(Ac_RPKM.m2$Var1 %in% goi.m2),]
+rpkm.goi.m2$shape = factor(c(1,2,3))
+
+rpkm.goi.m2$col = c(rep("#000004FF",3),rep("#89226AFF",3),rep("#F98C0AFF",3))
+rpkm.goi.m2 = droplevels(rpkm.goi.m2)
 
 ggplot() +
-  geom_boxplot(data = Ac_RPKM.m2, aes(x = factor(Var2), y= value), fill = "lightgrey") + # removes outliers, use with scale_y_continuous(limits = c(lower, upper))
-  # points of data.frame literal
-  geom_point(data = t.goi.m2, size = 4, aes(x=factor(Var2), y=value, color = Var1, shape = Var1)) +
-  geom_line(data = t.goi.m2, aes(x=factor(Var2), y=value, group = Var1, linetype = Var1)) +
-  #geom_line(data = t.goi.m2, aes(group = Var1), alpha = 0.6, colour = "black") + 
+  geom_boxplot(data = Ac_RPKM.m2, aes(x = factor(Var2), y= value), fill = "lightgrey", 
+               outlier.shape = NA) + 
+  geom_point(data = rpkm.goi.m2, size = 2, aes(x= factor(Var2), y = value, colour = Var1, shape = Var1), position = position_jitter(width = 0.2)) +    
+  scale_colour_manual(name = "Gene", 
+                      labels = levels(rpkm.goi.m2$Var1),
+                      values = rep(rpkm.goi.m2$col,3)) +
+  #values = c(magma(9, alpha = 1, begin = 0, end = 1, direction = 1))) +   
+  scale_shape_manual(name = "Gene", 
+                     labels = levels(rpkm.goi.m2$Var1),
+                     values = c(15:18,15:18,15)) +
   ylab(expression(Log[2]~(RPKM))) +
   xlab("Life cycle stage") +
-  labs(title = "Figure 7a") +
-  # coord_cartesian(ylim = c(-8, 18)) +
-  scale_y_continuous(limits = c(-7.5, 12)) +
+  labs(title = "Supplementary Figure 8") +
+  scale_y_continuous(limits = c(-7.5, 8)) +
   theme_bw(base_size = 14) +
   theme(axis.title = element_text(size = 12)
         , axis.text = element_text(size = 14)
         , legend.text = element_text(size = 10)
         , legend.title = element_blank()
   ) 
-
 ```
 
-### Supplementary figure 8.
+
+### Figure 7a.
 
 ```
-goi.1=as.factor(goi)
+goi.n = c("Atlas", "s0203.g1846", "s0025.g1106")
 
-levels(goi.1)[levels(goi.1)=="s0020.g108"] <- "Atlas"
-t.goi.1 = Ac_RPKM.m2[which(Ac_RPKM.m2$Var1 %in% goi.1),]
-t.goi.1 = droplevels(t.goi.1)
-t.goi.1$Var1 = factor(t.goi.1$Var1, levels = sort(levels(t.goi.1$Var1)))
+t.goi.m2 = Ac_RPKM.m2[which(Ac_RPKM.m2$Var1 %in% goi.n),]
+t.goi.m2 = droplevels(t.goi.m2)
 
-line.atlas = t.goi.1[which(t.goi.1$Var1=="Atlas"),]
-
-  ggplot() +
-  geom_boxplot(data = Ac_RPKM.m2, aes(x = factor(Var2), y= value), fill = "lightgrey", 
-               outlier.shape = NA) + # removes outliers, use with scale_y_continuous(limits = c(lower, upper))
-  geom_point(data = t.goi.1, size = 4, aes(x=factor(Var2), y=value, color=Var1, shape = Var1), position = position_jitterdodge(jitter.width = 0)) + 
-  scale_shape_manual(values=c(16:24)) +
+ggplot() +
+  geom_boxplot(data = Ac_RPKM.m2, aes(x = factor(Var2), y= value), fill = "lightgrey") +
+  geom_point(data = t.goi.m2, size = 3, aes(x=factor(Var2), y=value, colour = Var1, shape = Var1)) +
+  geom_line(data = t.goi.m2, aes(x=factor(Var2), y=value, group = Var1, linetype = Var1)) +
+  #geom_line(data = t.goi.m2, aes(group = Var1), alpha = 0.6, colour = "black") + 
+  scale_colour_manual(name = "Gene", 
+                      labels = levels(t.goi.m2$Var1),
+                      values = unique(rpkm.goi.m2$col)) +
+  #values = c(magma(9, alpha = 1, begin = 0, end = 1, direction = 1))) +   
+  scale_shape_manual(name = "Gene", 
+                     labels = levels(t.goi.m2$Var1),
+                     values = c(16,15,17)) +
+  scale_linetype_manual(name = "Gene",
+                        labels = levels(t.goi.m2$Var1),
+                        values = c(3:5)) +
   ylab(expression(Log[2]~(RPKM))) +
   xlab("Life cycle stage") +
-  labs(title = "Supplementary Figure 8") +
-  scale_y_continuous(limits = c(-7.5, 8)) +
+  labs(title = "Figure 7a") +
+  scale_y_continuous(limits = c(-7.5, 12)) +
   theme_bw(base_size = 14) +
   theme(axis.title = element_text(size = 12)
         , axis.text = element_text(size = 14)

@@ -303,7 +303,8 @@ $(document).ready(function () {
 <div id="differential-expression-analysis-with-deseq2." class="section level2">
 <h2>Differential Expression analysis with DESeq2.</h2>
 <p>We used the very popular <a href="https://doi.org/10.1186/s13059-014-0550-8">DESeq2 package</a> implemented in <a href="https://www.r-project.org/">R</a> and available through <a href="https://www.bioconductor.org/">Bioconductor</a>.</p>
-<p>Below is the script used to process the counts table. <strong>All the code blocks are R code</strong></p>
+<p>Below is the script used to process the counts table. <strong>All the code blocks are R code</strong>.</p>
+<p>IMPORTANT: Compressed files in the <code>input_data</code> folder need to be decompressed (use <code>gunzip</code> command) before loading.</p>
 <p>Load libraries:</p>
 <pre><code>library(DESeq2)
 library(ggplot2)
@@ -384,61 +385,71 @@ Ac_RPKM.m2 = cbind(Ac_RPKM[,1]
                    , apply(Ac_RPKM[,6:1], 1, mean) # mean of AdultN sample
                    )
 colnames(Ac_RPKM.m2) = c(&quot;L3&quot;, &quot;L4&quot;, &quot;AdultM&quot;, &quot;AdultN&quot;)</code></pre>
-<div id="figure-7a" class="section level3">
-<h3>Figure 7a:</h3>
+<div id="supplementary-figure-8" class="section level3">
+<h3>Supplementary Figure 8:</h3>
 <pre><code>
-goi.n = c(&quot;Atlas&quot;, &quot;s0203.g1846&quot;, &quot;s0025.g1106&quot;)
-
 Ac_RPKM.m2 = reshape2::melt(Ac_RPKM.m2)
 
-# rename levels of life cycle stages
 levels(Ac_RPKM.m2$Var2)[levels(Ac_RPKM.m2$Var2)==&quot;AdultM&quot;] &lt;- &quot;Adult male&quot;
 levels(Ac_RPKM.m2$Var2)[levels(Ac_RPKM.m2$Var2)==&quot;AdultN&quot;] &lt;- &quot;Adult mix&quot;
 
-# rename levels of Atlas
 levels(Ac_RPKM.m2$Var1)[levels(Ac_RPKM.m2$Var1)==&quot;s0020.g108&quot;] &lt;- &quot;Atlas&quot;
+goi.m2 = factor(c(&quot;Atlas&quot;,&quot;s0025.g1106&quot;,&quot;s0203.g1846&quot;,&quot;s0009.g673&quot;,&quot;s0023.g802&quot;,&quot;s0023.g869&quot;, &quot;s0070.g451&quot;,&quot;s0206.g1994&quot;,&quot;s0398.g719&quot;))
 
-t.goi.m2 = Ac_RPKM.m2[which(Ac_RPKM.m2$Var1 %in% goi.n),]
+rpkm.goi.m2 = Ac_RPKM.m2[which(Ac_RPKM.m2$Var1 %in% goi.m2),]
+rpkm.goi.m2$shape = factor(c(1,2,3))
+
+rpkm.goi.m2$col = c(rep(&quot;#000004FF&quot;,3),rep(&quot;#89226AFF&quot;,3),rep(&quot;#F98C0AFF&quot;,3))
+rpkm.goi.m2 = droplevels(rpkm.goi.m2)
 
 ggplot() +
-  geom_boxplot(data = Ac_RPKM.m2, aes(x = factor(Var2), y= value), fill = &quot;lightgrey&quot;) + # removes outliers, use with scale_y_continuous(limits = c(lower, upper))
-  # points of data.frame literal
-  geom_point(data = t.goi.m2, size = 4, aes(x=factor(Var2), y=value, color = Var1, shape = Var1)) +
-  geom_line(data = t.goi.m2, aes(x=factor(Var2), y=value, group = Var1, linetype = Var1)) +
-  #geom_line(data = t.goi.m2, aes(group = Var1), alpha = 0.6, colour = &quot;black&quot;) + 
+  geom_boxplot(data = Ac_RPKM.m2, aes(x = factor(Var2), y= value), fill = &quot;lightgrey&quot;, 
+               outlier.shape = NA) + 
+  geom_point(data = rpkm.goi.m2, size = 2, aes(x= factor(Var2), y = value, colour = Var1, shape = Var1), position = position_jitter(width = 0.2)) +    
+  scale_colour_manual(name = &quot;Gene&quot;, 
+                      labels = levels(rpkm.goi.m2$Var1),
+                      values = rep(rpkm.goi.m2$col,3)) +
+  #values = c(magma(9, alpha = 1, begin = 0, end = 1, direction = 1))) +   
+  scale_shape_manual(name = &quot;Gene&quot;, 
+                     labels = levels(rpkm.goi.m2$Var1),
+                     values = c(15:18,15:18,15)) +
   ylab(expression(Log[2]~(RPKM))) +
   xlab(&quot;Life cycle stage&quot;) +
-  labs(title = &quot;Figure 7a&quot;) +
-  # coord_cartesian(ylim = c(-8, 18)) +
-  scale_y_continuous(limits = c(-7.5, 12)) +
+  labs(title = &quot;Supplementary Figure 8&quot;) +
+  scale_y_continuous(limits = c(-7.5, 8)) +
   theme_bw(base_size = 14) +
   theme(axis.title = element_text(size = 12)
         , axis.text = element_text(size = 14)
         , legend.text = element_text(size = 10)
         , legend.title = element_blank()
-  ) 
-</code></pre>
+  ) </code></pre>
 </div>
-<div id="supplementary-figure-8." class="section level3">
-<h3>Supplementary figure 8.</h3>
-<pre><code>goi.1=as.factor(goi)
+<div id="figure-7a." class="section level3">
+<h3>Figure 7a.</h3>
+<pre><code>goi.n = c(&quot;Atlas&quot;, &quot;s0203.g1846&quot;, &quot;s0025.g1106&quot;)
 
-levels(goi.1)[levels(goi.1)==&quot;s0020.g108&quot;] &lt;- &quot;Atlas&quot;
-t.goi.1 = Ac_RPKM.m2[which(Ac_RPKM.m2$Var1 %in% goi.1),]
-t.goi.1 = droplevels(t.goi.1)
-t.goi.1$Var1 = factor(t.goi.1$Var1, levels = sort(levels(t.goi.1$Var1)))
+t.goi.m2 = Ac_RPKM.m2[which(Ac_RPKM.m2$Var1 %in% goi.n),]
+t.goi.m2 = droplevels(t.goi.m2)
 
-line.atlas = t.goi.1[which(t.goi.1$Var1==&quot;Atlas&quot;),]
-
-  ggplot() +
-  geom_boxplot(data = Ac_RPKM.m2, aes(x = factor(Var2), y= value), fill = &quot;lightgrey&quot;, 
-               outlier.shape = NA) + # removes outliers, use with scale_y_continuous(limits = c(lower, upper))
-  geom_point(data = t.goi.1, size = 4, aes(x=factor(Var2), y=value, color=Var1, shape = Var1), position = position_jitterdodge(jitter.width = 0)) + 
-  scale_shape_manual(values=c(16:24)) +
+ggplot() +
+  geom_boxplot(data = Ac_RPKM.m2, aes(x = factor(Var2), y= value), fill = &quot;lightgrey&quot;) +
+  geom_point(data = t.goi.m2, size = 3, aes(x=factor(Var2), y=value, colour = Var1, shape = Var1)) +
+  geom_line(data = t.goi.m2, aes(x=factor(Var2), y=value, group = Var1, linetype = Var1)) +
+  #geom_line(data = t.goi.m2, aes(group = Var1), alpha = 0.6, colour = &quot;black&quot;) + 
+  scale_colour_manual(name = &quot;Gene&quot;, 
+                      labels = levels(t.goi.m2$Var1),
+                      values = unique(rpkm.goi.m2$col)) +
+  #values = c(magma(9, alpha = 1, begin = 0, end = 1, direction = 1))) +   
+  scale_shape_manual(name = &quot;Gene&quot;, 
+                     labels = levels(t.goi.m2$Var1),
+                     values = c(16,15,17)) +
+  scale_linetype_manual(name = &quot;Gene&quot;,
+                        labels = levels(t.goi.m2$Var1),
+                        values = c(3:5)) +
   ylab(expression(Log[2]~(RPKM))) +
   xlab(&quot;Life cycle stage&quot;) +
-  labs(title = &quot;Supplementary Figure 8&quot;) +
-  scale_y_continuous(limits = c(-7.5, 8)) +
+  labs(title = &quot;Figure 7a&quot;) +
+  scale_y_continuous(limits = c(-7.5, 12)) +
   theme_bw(base_size = 14) +
   theme(axis.title = element_text(size = 12)
         , axis.text = element_text(size = 14)
